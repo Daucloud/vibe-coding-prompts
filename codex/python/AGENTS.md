@@ -6,8 +6,8 @@ Focus on readability, debuggability, and maintainability.
 ## 1. Style & Formatting (Modified Google Style)
 
 - **Base Style:** Follow **Google Python Style Guide** for naming and docstrings.
-- **Line Length:** Relaxed limit of **120 characters**.
-  - **Prohibited:** Splitting simple function calls or lists into multiple lines if they fit within 120 chars. Keep code vertically compact.
+- **Line Length:** Make your code lines compact without too frequent newlines
+  - **Prohibited:** Splitting simple function calls or lists into multiple lines. Keep code vertically compact.
 - **Docstrings:** Use Google Format (`Args:`, `Returns:`) but ONLY for complex functions/classes.
 - **F-strings:** Always use `f"{var}"` for interpolation.
 
@@ -22,8 +22,6 @@ Focus on readability, debuggability, and maintainability.
 ## 3. Structure: Cohesion & Runnability
 
 - **Cohesion:** Keep related classes, helpers, and Pydantic models in the same file. Do not create `utils.py` unless the code is truly generic across projects.
-- **Runnable Context:** ALWAYS include an `if __name__ == "__main__":` block at the end of logic files.
-  - Include a minimal "Smoke Test" (a simple run of the main function) to verify the code works immediately.
 
 ## 4. Data & Typing
 
