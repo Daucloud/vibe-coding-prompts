@@ -9,7 +9,7 @@
     {
       "tool": "codex",
       "label": "python",
-      "path": "agents/codex/python/AGENTS.md",
+      "path": "codex/python/AGENTS.md",
       "title": "Python"
     }
   ]
