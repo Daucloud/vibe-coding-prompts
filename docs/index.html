@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AGENTS.md Downloader</title>
+    <title>vibe-coding-prompts</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -18,6 +18,7 @@
         --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         --chip: rgba(122, 162, 255, 0.16);
         --chip-border: rgba(122, 162, 255, 0.35);
+        --title-grad: linear-gradient(135deg, rgba(122, 162, 255, 0.95), rgba(51, 209, 122, 0.95));
       }
       @media (prefers-color-scheme: light) {
         :root {
@@ -30,6 +31,7 @@
           --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
           --chip: rgba(51, 93, 255, 0.12);
           --chip-border: rgba(51, 93, 255, 0.28);
+          --title-grad: linear-gradient(135deg, rgba(51, 93, 255, 0.95), rgba(17, 150, 105, 0.95));
         }
       }
       body {
@@ -63,6 +65,11 @@
         font-size: 44px;
         margin: 0;
         letter-spacing: -0.8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: var(--title-grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
       }
       .subtitle {
         color: var(--muted);
@@ -71,7 +78,9 @@
         line-height: 1.35;
       }
       .status {
+        margin-top: 10px;
         font-size: 12px;
+        min-height: 16px;
         color: var(--muted);
       }
       .status.good {
@@ -132,13 +141,37 @@
         border-radius: 10px;
         padding: 12px 14px;
         cursor: pointer;
+        transition: transform 120ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
       }
       button:hover {
         border-color: rgba(122, 162, 255, 0.45);
       }
+      button:active {
+        transform: translateY(1px);
+      }
       button.primary {
         background: linear-gradient(135deg, rgba(122, 162, 255, 0.45), rgba(51, 209, 122, 0.35));
         border-color: rgba(122, 162, 255, 0.55);
+      }
+      button.secondary {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+      button.secondary:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(122, 162, 255, 0.45);
+      }
+      button.ghost {
+        background: transparent;
+      }
+      .actionRow {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .actionRow button {
+        padding: 10px 12px;
+        border-radius: 12px;
       }
       .note {
         margin-top: 10px;
@@ -184,8 +217,8 @@
       .searchBox {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 10px;
+        gap: 0;
+        padding: 6px 6px;
         border-radius: 12px;
         border: 1px solid var(--border);
         background: rgba(255, 255, 255, 0.02);
@@ -197,9 +230,31 @@
       .searchBox input {
         border: none;
         background: transparent;
-        padding: 8px 6px;
+        padding: 10px 10px;
         box-shadow: none;
         border-radius: 10px;
+      }
+      .divider {
+        width: 1px;
+        align-self: stretch;
+        background: var(--border);
+        margin: 4px 2px;
+      }
+      .fieldHint {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 56px;
+        padding: 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+        user-select: none;
+      }
+      .fieldGroup {
+        display: flex;
+        align-items: center;
+        flex: 1 1 0;
+        min-width: 0;
       }
       .chip {
         display: inline-flex;
@@ -261,26 +316,15 @@
         font-size: 12px;
         white-space: nowrap;
       }
-      .tinyLink {
-        margin-top: 8px;
-        color: var(--muted);
-        font-size: 12px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
     </style>
   </head>
   <body>
     <div class="wrap">
       <div class="panel">
         <div class="header">
-          <h1>AGENTS.md</h1>
-          <div class="subtitle">Search a template, then generate a <code>curl</code> command.</div>
-          <div class="meta">
-            <span class="pill">raw.githubusercontent.com</span>
-            <span id="loadStatus" class="status">Loading…</span>
-          </div>
+          <h1>vibe-coding-prompts</h1>
+          <div class="subtitle">Pick a tool and label, then generate a <code>curl</code> command.</div>
+          <div id="loadStatus" class="status"></div>
         </div>
 
         <div class="row">
@@ -291,7 +335,15 @@
                   <span id="selectedLabel"></span>
                   <button id="clearSelection" type="button" aria-label="Clear selection">×</button>
                 </span>
-                <input id="query" inputmode="text" autocomplete="off" placeholder="Search (e.g. codex python)" />
+                <div class="fieldGroup">
+                  <span class="fieldHint">Tool</span>
+                  <input id="toolQuery" inputmode="text" autocomplete="off" placeholder="codex" aria-label="Tool" />
+                </div>
+                <span class="divider"></span>
+                <div class="fieldGroup">
+                  <span class="fieldHint">Label</span>
+                  <input id="labelQuery" inputmode="text" autocomplete="off" placeholder="python" aria-label="Label" />
+                </div>
               </div>
               <div class="dropdown" id="dropdown" role="listbox" aria-label="Search results"></div>
             </div>
@@ -302,11 +354,10 @@
         <div class="result" id="result">
           <div class="row">
             <textarea id="command" readonly></textarea>
-            <div class="actions">
-              <button id="copyCmd">Copy command</button>
-              <button id="openRaw" type="button">Open raw</button>
+            <div class="actions actionRow">
+              <button id="copyCmd" class="secondary">Copy</button>
+              <button id="openRaw" class="secondary" type="button">Open raw</button>
             </div>
-            <div class="tinyLink" id="rawUrlNote"></div>
           </div>
         </div>
       </div>
@@ -322,7 +373,8 @@
           owner: params.get("owner") || "",
           repo: params.get("repo") || "",
           dest: params.get("dest") || "",
-          q: params.get("q") || "",
+          tool: params.get("tool") || "",
+          label: params.get("label") || "",
         };
       }
 
@@ -390,44 +442,38 @@
         if (variant) el.classList.add(variant);
       }
 
-      function normalizeCombo(value) {
-        const cleaned = String(value || "")
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, " ")
-          .replace(/\+/g, " ");
-        const parts = cleaned.split(" ").filter(Boolean);
-        if (parts.length < 2) return { tool: "", lang: "" };
-        return { tool: parts[0], lang: parts[1] };
-      }
-
       function normalizeQueryTokens(value) {
         const cleaned = String(value || "").trim().toLowerCase().replace(/\+/g, " ");
         return cleaned.split(/\s+/).filter(Boolean);
       }
 
-      function scoreItem(item, tokens) {
-        if (tokens.length === 0) return 1;
+      function scoreItem(item, { toolTokens, labelTokens, mode }) {
         const tool = String(item.tool || "").toLowerCase();
-        const lang = String(item.lang || "").toLowerCase();
         const label = String(item.label || "").toLowerCase();
-        const haystack = `${tool} ${lang} ${label}`;
+        const title = String(item.title || "").toLowerCase();
+        const labelHaystack = `${label} ${title}`.trim();
 
         let score = 0;
-        for (const token of tokens) {
-          if (!token) continue;
-          if (tool === token) score += 120;
-          if (lang === token) score += 120;
-          if (tool.startsWith(token)) score += 80;
-          if (lang.startsWith(token)) score += 80;
-          if (label.startsWith(token)) score += 55;
-          if (haystack.includes(token)) score += 35;
+        if (mode === "tool") {
+          if (toolTokens.length === 0) return 1;
+          for (const token of toolTokens) {
+            if (!token) continue;
+            if (tool === token) score += 120;
+            if (tool.startsWith(token)) score += 80;
+            if (tool.includes(token)) score += 35;
+          }
+          return score;
         }
 
-        // Bonus for combined "tool lang" in correct order
-        if (tokens.length >= 2) {
-          const two = `${tokens[0]} ${tokens[1]}`;
-          if (`${tool} ${lang}`.startsWith(two)) score += 120;
+        // label mode
+        if (labelTokens.length === 0) return 1;
+        for (const token of labelTokens) {
+          if (!token) continue;
+          if (label === token) score += 120;
+          if (title === token) score += 110;
+          if (label.startsWith(token)) score += 80;
+          if (title.startsWith(token)) score += 70;
+          if (labelHaystack.includes(token)) score += 35;
         }
         return score;
       }
@@ -455,8 +501,6 @@
             throw new Error("registry has no items");
           }
 
-          setStatus("Ready", "good");
-
           function resolveOwnerRepoRef() {
             const owner = (query.owner || guessed.owner || defaults.owner || "").trim();
             const repo = (query.repo || guessed.repo || defaults.repo || "").trim();
@@ -467,16 +511,17 @@
           function showResult({ rawUrl, command }) {
             $("command").value = command;
             $("result").style.display = "block";
-            $("rawUrlNote").innerHTML = `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer"><code>${rawUrl}</code></a>`;
             $("openRaw").onclick = () => window.open(rawUrl, "_blank", "noopener,noreferrer");
           }
 
-          function findItem(tool, lang) {
-            return items.find((x) => x.tool === tool && x.lang === lang) || null;
+          function findItem(tool, label) {
+            return items.find((x) => x.tool === tool && x.label === label) || null;
           }
 
           let selected = null;
           let activeIndex = -1;
+          let activeMode = "tool";
+          let selectedTool = "";
 
           function setSelected(item) {
             selected = item;
@@ -486,13 +531,27 @@
               return;
             }
             $("selectedChip").style.display = "inline-flex";
-            $("selectedLabel").textContent = item.label || `${item.tool}+${item.lang}`;
+            $("selectedLabel").textContent = `${item.tool} / ${item.label}`;
+            selectedTool = item.tool;
           }
 
           function getResults() {
-            const tokens = normalizeQueryTokens($("query").value);
-            const scored = items
-              .map((item) => ({ item, score: scoreItem(item, tokens) }))
+            if (activeMode === "tool") {
+              const toolTokens = normalizeQueryTokens($("toolQuery").value);
+              const tools = [...new Set(items.map((x) => String(x.tool || "")))].filter(Boolean);
+              const toolItems = tools.map((tool) => ({ tool }));
+              const scored = toolItems
+                .map((t) => ({ item: t, score: scoreItem({ tool: t.tool }, { toolTokens, labelTokens: [], mode: "tool" }) }))
+                .filter((x) => x.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 8);
+              return scored.map((x) => x.item);
+            }
+
+            const labelTokens = normalizeQueryTokens($("labelQuery").value);
+            const filtered = items.filter((x) => (selectedTool ? x.tool === selectedTool : true));
+            const scored = filtered
+              .map((item) => ({ item, score: scoreItem(item, { toolTokens: [], labelTokens, mode: "label" }) }))
               .filter((x) => x.score > 0)
               .sort((a, b) => b.score - a.score)
               .slice(0, 8);
@@ -522,15 +581,30 @@
               const el = document.createElement("div");
               el.className = "option" + (index === activeIndex ? " active" : "");
               el.setAttribute("role", "option");
-              el.dataset.tool = item.tool;
-              el.dataset.lang = item.lang;
-              const title = escapeHtml(item.label || `${item.tool}+${item.lang}`);
-              const meta = escapeHtml(`${item.tool}+${item.lang}`);
-              el.innerHTML = `<div class="optionTitle">${title}</div><div class="optionMeta">${meta}</div>`;
+              if (activeMode === "tool") {
+                el.dataset.tool = item.tool;
+                const title = escapeHtml(item.tool);
+                el.innerHTML = `<div class="optionTitle">${title}</div><div class="optionMeta">tool</div>`;
+              } else {
+                el.dataset.tool = item.tool;
+                el.dataset.label = item.label;
+                const title = escapeHtml(item.title || item.label);
+                const meta = escapeHtml(item.label);
+                el.innerHTML = `<div class="optionTitle">${title}</div><div class="optionMeta">${meta}</div>`;
+              }
               el.addEventListener("mousedown", (e) => {
                 e.preventDefault();
+                if (activeMode === "tool") {
+                  selectedTool = item.tool;
+                  $("toolQuery").value = item.tool;
+                  $("labelQuery").focus();
+                  activeMode = "label";
+                  activeIndex = -1;
+                  renderDropdown();
+                  return;
+                }
                 setSelected(item);
-                $("query").value = "";
+                $("labelQuery").value = item.label;
                 closeDropdown();
               });
               dropdown.appendChild(el);
@@ -550,14 +624,30 @@
             renderDropdown();
           }
 
-          $("query").addEventListener("input", () => {
+          $("toolQuery").addEventListener("input", () => {
+            activeMode = "tool";
+            activeIndex = -1;
+            selected = null;
+            $("result").style.display = "none";
+            renderDropdown();
+          });
+          $("toolQuery").addEventListener("focus", () => {
+            activeMode = "tool";
             activeIndex = -1;
             renderDropdown();
           });
-          $("query").addEventListener("focus", () => {
+          $("labelQuery").addEventListener("input", () => {
+            activeMode = "label";
+            activeIndex = -1;
+            selected = null;
+            $("result").style.display = "none";
             renderDropdown();
           });
-          $("query").addEventListener("keydown", (e) => {
+          $("labelQuery").addEventListener("focus", () => {
+            activeMode = "label";
+            renderDropdown();
+          });
+          function onKeydown(e) {
             if (!$("dropdown").classList.contains("open") && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
               renderDropdown();
             }
@@ -580,16 +670,30 @@
               if (results.length === 0) return;
               e.preventDefault();
               const picked = results[Math.max(0, activeIndex)];
+              if (activeMode === "tool") {
+                selectedTool = picked.tool;
+                $("toolQuery").value = picked.tool;
+                $("labelQuery").focus();
+                activeMode = "label";
+                activeIndex = -1;
+                renderDropdown();
+                return;
+              }
               setSelected(picked);
-              $("query").value = "";
+              $("labelQuery").value = picked.label;
               closeDropdown();
             }
-          });
+          }
+          $("toolQuery").addEventListener("keydown", onKeydown);
+          $("labelQuery").addEventListener("keydown", onKeydown);
 
           $("clearSelection").addEventListener("click", () => {
             setSelected(null);
             $("result").style.display = "none";
-            $("query").focus();
+            selectedTool = "";
+            $("toolQuery").value = "";
+            $("labelQuery").value = "";
+            $("toolQuery").focus();
           });
 
           document.addEventListener("click", (e) => {
@@ -599,20 +703,30 @@
             if (!inside) closeDropdown();
           });
 
-          if (query.q) {
-            const { tool, lang } = normalizeCombo(query.q);
-            const item = tool && lang ? findItem(tool, lang) : null;
-            if (item) setSelected(item);
+          if (query.tool) {
+            selectedTool = String(query.tool).trim();
+            if (selectedTool) $("toolQuery").value = selectedTool;
           }
+          if (query.label && selectedTool) {
+            const label = String(query.label).trim();
+            const item = label ? findItem(selectedTool, label) : null;
+            if (item) {
+              $("labelQuery").value = label;
+              setSelected(item);
+            }
+          }
+
+          setStatus("", "");
 
           $("generate").addEventListener("click", async () => {
             if (!selected) {
-              const typed = normalizeCombo($("query").value);
-              const fromTyped = typed.tool && typed.lang ? findItem(typed.tool, typed.lang) : null;
+              const tool = String($("toolQuery").value || "").trim().toLowerCase();
+              const label = String($("labelQuery").value || "").trim().toLowerCase();
+              const fromTyped = tool && label ? findItem(tool, label) : null;
               if (fromTyped) setSelected(fromTyped);
             }
             if (!selected) {
-              setStatus("Pick one template first", "bad");
+              setStatus("Pick a tool + label", "bad");
               $("result").style.display = "none";
               return;
             }
@@ -627,14 +741,14 @@
             const dest = (query.dest || "AGENTS.md").trim() || "AGENTS.md";
             const command = buildCommand({ rawUrl, dest });
             showResult({ rawUrl, command });
-            setStatus("Generated", "good");
+            setStatus("", "");
           });
 
           $("copyCmd").addEventListener("click", async () => {
             const text = $("command").value;
             if (!text) return;
             await copyToClipboard(text);
-            setStatus("Command copied", "good");
+            setStatus("Copied", "good");
           });
         } catch (err) {
           setStatus(`Error: ${err && err.message ? err.message : String(err)}`, "bad");

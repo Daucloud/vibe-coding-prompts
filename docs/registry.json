@@ -8,9 +8,9 @@
   "items": [
     {
       "tool": "codex",
-      "lang": "python",
+      "label": "python",
       "path": "agents/codex/python/AGENTS.md",
-      "label": "Codex + Python"
+      "title": "Python"
     }
   ]
 }
