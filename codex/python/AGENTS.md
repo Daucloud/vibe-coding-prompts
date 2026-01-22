@@ -24,7 +24,6 @@ Focus on readability, debuggability, and maintainability.
 - **Cohesion:** Keep related classes, helpers, and Pydantic models in the same file. Do not create `utils.py` unless the code is truly generic across projects.
 - **Runnable Context:** ALWAYS include an `if __name__ == "__main__":` block at the end of logic files.
   - Include a minimal "Smoke Test" (a simple run of the main function) to verify the code works immediately.
-- **Constants:** Extract magic numbers/strings to `CONSTANTS` at the top of the file.
 
 ## 4. Data & Typing
 
