@@ -1,5 +1,10 @@
 {
   "schemaVersion": 1,
+  "defaults": {
+    "owner": "daucloud",
+    "repo": "vibe-coding-prompts",
+    "ref": "main"
+  },
   "items": [
     {
       "tool": "codex",
