@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Vibe Coding Prompts - AGENTS Downloader</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b0f17;
+        --panel: #121a2a;
+        --text: #e6edf3;
+        --muted: #9fb0c0;
+        --border: rgba(255, 255, 255, 0.12);
+        --accent: #7aa2ff;
+        --good: #33d17a;
+        --bad: #ff6b6b;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f8fb;
+          --panel: #ffffff;
+          --text: #111827;
+          --muted: #4b5563;
+          --border: rgba(17, 24, 39, 0.12);
+          --accent: #335dff;
+        }
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 28px 18px 60px;
+      }
+      .title {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .panel {
+        margin-top: 18px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 820px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        outline: none;
+      }
+      textarea {
+        min-height: 92px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        line-height: 1.35;
+        resize: vertical;
+      }
+      .row {
+        margin-top: 12px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      button {
+        border: 1px solid var(--border);
+        background: rgba(122, 162, 255, 0.15);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: rgba(122, 162, 255, 0.45);
+      }
+      .note {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .status {
+        font-size: 12px;
+        margin-left: auto;
+        color: var(--muted);
+      }
+      .status.good {
+        color: var(--good);
+      }
+      .status.bad {
+        color: var(--bad);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.95em;
+      }
+      .footer {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="title">
+        <h1>AGENTS.md Downloader</h1>
+        <span class="pill">GitHub Pages → raw.githubusercontent.com</span>
+        <span id="loadStatus" class="status">Loading registry…</span>
+      </div>
+      <div class="subtitle">Select a tool/language, then copy a curl command (no clone needed).</div>
+
+      <div class="panel">
+        <div class="grid">
+          <div>
+            <label for="tool">Tool</label>
+            <select id="tool"></select>
+          </div>
+          <div>
+            <label for="lang">Language</label>
+            <select id="lang"></select>
+          </div>
+          <div>
+            <label for="owner">GitHub owner</label>
+            <input id="owner" placeholder="daucloud" />
+          </div>
+          <div>
+            <label for="repo">GitHub repo</label>
+            <input id="repo" placeholder="vibe-coding-prompts" />
+          </div>
+          <div>
+            <label for="ref">Ref (branch/tag/sha)</label>
+            <input id="ref" value="main" />
+          </div>
+          <div>
+            <label for="destMode">Destination</label>
+            <select id="destMode">
+              <option value="project" selected>./AGENTS.md (project)</option>
+              <option value="codex">$HOME/.codex/agents/&lt;tool&gt;/&lt;lang&gt;/AGENTS.md</option>
+              <option value="custom">Custom path</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" id="customDestRow" style="display: none">
+          <label for="customDest">Custom destination path</label>
+          <input id="customDest" placeholder="~/Downloads/AGENTS.md" />
+        </div>
+
+        <div class="row">
+          <label for="rawUrl">Raw URL</label>
+          <input id="rawUrl" readonly />
+        </div>
+
+        <div class="row">
+          <label for="command">curl command</label>
+          <textarea id="command" readonly></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="copyCmd">Copy command</button>
+          <button id="copyUrl">Copy URL</button>
+          <button id="openUrl">Open URL</button>
+        </div>
+
+        <div class="note">
+          Tip: pin a version with <code>ref</code> = a tag (e.g. <code>v0.1.0</code>) or a commit sha to make installs reproducible.
+          Registry file: <a href="./registry.json">docs/registry.json</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="note">
+          Query params supported: <code>?tool=codex&amp;lang=python&amp;ref=v0.1.0&amp;dest=codex</code>
+        </div>
+        <div class="note">
+          Repo: <a data-role="repo-link" href="https://github.com/">GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function parseQuery() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          tool: params.get("tool") || "",
+          lang: params.get("lang") || "",
+          ref: params.get("ref") || "",
+          dest: params.get("dest") || "",
+          owner: params.get("owner") || "",
+          repo: params.get("repo") || "",
+          path: params.get("path") || "",
+        };
+      }
+
+      function guessOwnerRepoFromPagesUrl() {
+        const host = window.location.hostname;
+        const pathname = window.location.pathname.replace(/\/+$/, ""); // strip trailing slashes
+
+        if (!host.endsWith(".github.io")) {
+          return { owner: "", repo: "" };
+        }
+
+        const owner = host.split(".github.io")[0];
+        const segments = pathname.split("/").filter(Boolean);
+        if (segments.length >= 1) {
+          return { owner, repo: segments[0] };
+        }
+        return { owner, repo: `${owner}.github.io` };
+      }
+
+      function uniqueSorted(values) {
+        return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+      }
+
+      function setSelectOptions(selectEl, values) {
+        selectEl.innerHTML = "";
+        for (const value of values) {
+          const opt = document.createElement("option");
+          opt.value = value;
+          opt.textContent = value;
+          selectEl.appendChild(opt);
+        }
+      }
+
+      function shellEscapeSingleQuotes(value) {
+        return String(value).replace(/'/g, "'\"'\"'");
+      }
+
+      function shellEscapeDoubleQuotes(value, { escapeDollar } = { escapeDollar: true }) {
+        let out = String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/`/g, "\\`");
+        if (escapeDollar) out = out.replace(/\$/g, "\\$");
+        return out;
+      }
+
+      function toHomeVarPath(path) {
+        const value = String(path);
+        if (value.startsWith("~/")) return `$HOME/${value.slice(2)}`;
+        return value;
+      }
+
+      function quoteForShell(value, { allowEnvVars } = { allowEnvVars: false }) {
+        return `"${shellEscapeDoubleQuotes(value, { escapeDollar: !allowEnvVars })}"`;
+      }
+
+      function buildRawUrl({ owner, repo, ref, path }) {
+        if (!owner || !repo || !ref || !path) return "";
+        return `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path}`;
+      }
+
+      function buildCommand({ rawUrl, destMode, tool, lang, customDest }) {
+        if (!rawUrl) return "";
+
+        let dest = "./AGENTS.md";
+        if (destMode === "codex") {
+          dest = `$HOME/.codex/agents/${tool}/${lang}/AGENTS.md`;
+        }
+        if (destMode === "custom") {
+          dest = toHomeVarPath(customDest || "./AGENTS.md");
+        }
+
+        const allowEnvVars = dest.startsWith("$HOME/");
+        const hasDir = dest.includes("/");
+        const dir = hasDir ? dest.replace(/\/[^/]*$/, "") : "";
+        const needsMkdir = hasDir && dir !== "." && dir !== "./";
+        const quotedUrl = `'${shellEscapeSingleQuotes(rawUrl)}'`;
+        const quotedDest = quoteForShell(dest, { allowEnvVars });
+
+        if (!needsMkdir) {
+          return `curl -fsSL ${quotedUrl} -o ${quotedDest}`;
+        }
+
+        const quotedDir = quoteForShell(dir, { allowEnvVars });
+        return `mkdir -p ${quotedDir} && curl -fsSL ${quotedUrl} -o ${quotedDest}`;
+      }
+
+      async function copyToClipboard(text) {
+        await navigator.clipboard.writeText(text);
+      }
+
+      function setStatus(text, variant) {
+        const el = $("loadStatus");
+        el.textContent = text;
+        el.classList.remove("good", "bad");
+        if (variant) el.classList.add(variant);
+      }
+
+      function updateCustomDestVisibility() {
+        const mode = $("destMode").value;
+        $("customDestRow").style.display = mode === "custom" ? "block" : "none";
+      }
+
+      function syncFromState(state) {
+        const rawUrl = buildRawUrl(state);
+        $("rawUrl").value = rawUrl;
+        $("command").value = buildCommand({
+          rawUrl,
+          destMode: state.destMode,
+          tool: state.tool,
+          lang: state.lang,
+          customDest: state.customDest,
+        });
+      }
+
+      function readStateFromControls(items) {
+        const tool = $("tool").value;
+        const lang = $("lang").value;
+        const destMode = $("destMode").value;
+        const owner = $("owner").value.trim();
+        const repo = $("repo").value.trim();
+        const ref = $("ref").value.trim() || "main";
+        const customDest = $("customDest").value.trim();
+
+        const matched = items.find((x) => x.tool === tool && x.lang === lang);
+        const path = matched ? matched.path : "";
+
+        return { tool, lang, destMode, owner, repo, ref, customDest, path };
+      }
+
+      async function main() {
+        const query = parseQuery();
+        const guessed = guessOwnerRepoFromPagesUrl();
+
+        $("owner").value = query.owner || guessed.owner;
+        $("repo").value = query.repo || guessed.repo;
+        if (query.ref) $("ref").value = query.ref;
+        if (query.dest) $("destMode").value = query.dest;
+        updateCustomDestVisibility();
+
+        try {
+          const res = await fetch("./registry.json", { cache: "no-store" });
+          if (!res.ok) throw new Error(`registry fetch failed: ${res.status}`);
+          const registry = await res.json();
+          const items = (registry && registry.items) || [];
+          if (!Array.isArray(items) || items.length === 0) {
+            throw new Error("registry has no items");
+          }
+
+          const tools = uniqueSorted(items.map((x) => x.tool));
+          setSelectOptions($("tool"), tools);
+
+          function refreshLangOptions() {
+            const selectedTool = $("tool").value;
+            const langs = uniqueSorted(items.filter((x) => x.tool === selectedTool).map((x) => x.lang));
+            setSelectOptions($("lang"), langs);
+          }
+
+          if (query.tool && tools.includes(query.tool)) $("tool").value = query.tool;
+          refreshLangOptions();
+          const langsForTool = uniqueSorted(items.filter((x) => x.tool === $("tool").value).map((x) => x.lang));
+          if (query.lang && langsForTool.includes(query.lang)) $("lang").value = query.lang;
+
+          function rerender() {
+            updateCustomDestVisibility();
+            const state = readStateFromControls(items);
+            syncFromState(state);
+
+            const repoHref = state.owner && state.repo ? `https://github.com/${state.owner}/${state.repo}` : "https://github.com/";
+            const repoLink = document.querySelector('[data-role="repo-link"]');
+            if (repoLink) repoLink.setAttribute("href", repoHref);
+          }
+
+          for (const id of ["tool", "lang", "owner", "repo", "ref", "destMode", "customDest"]) {
+            $(id).addEventListener("input", rerender);
+            $(id).addEventListener("change", rerender);
+          }
+          $("tool").addEventListener("change", () => {
+            refreshLangOptions();
+            rerender();
+          });
+
+          rerender();
+          setStatus(`Loaded ${items.length} item(s)`, "good");
+
+          $("copyCmd").addEventListener("click", async () => {
+            const text = $("command").value;
+            if (!text) return;
+            await copyToClipboard(text);
+            setStatus("Command copied", "good");
+          });
+          $("copyUrl").addEventListener("click", async () => {
+            const text = $("rawUrl").value;
+            if (!text) return;
+            await copyToClipboard(text);
+            setStatus("URL copied", "good");
+          });
+          $("openUrl").addEventListener("click", () => {
+            const url = $("rawUrl").value;
+            if (!url) return;
+            window.open(url, "_blank", "noopener,noreferrer");
+          });
+        } catch (err) {
+          setStatus(`Error: ${err && err.message ? err.message : String(err)}`, "bad");
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>

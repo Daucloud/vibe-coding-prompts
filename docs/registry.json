@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "tool": "codex",
+      "lang": "python",
+      "path": "agents/codex/python/AGENTS.md",
+      "label": "Codex + Python"
+    }
+  ]
+}
